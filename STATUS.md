@@ -31,7 +31,7 @@ y un panel conectado al backend.
 | Logs estructurados | Hecho | Resultado, intentos, latencia y errores de mapeo |
 | Cálculos del mapeador | Hecho | Aserción local: bruto 20, descuento 2 y neto 18 |
 | Propuesta de innovación | Hecho | Alertas de degradación documentadas |
-| Documentación | Hecho | README, AI-LOG y STATUS preparados; publicación final pendiente |
+| Documentación | Hecho | README, AI-LOG y STATUS preparados; Documentación publicada y verificaciones registradas |
 | Instalación desde clon local limpio | Hecho | npm ci y ejecución del panel con los cuatro proveedores en el puerto 3002 |
 
 ## Pendientes
