@@ -1,13 +1,13 @@
 # PayLinkHub
 
 Aplicación local para consultar información de clientes y consumos
-simulados, con un panel que muestra la salud de los proveedores
-y conserva los datos disponibles cuando alguno falla.
+simulados. Incluye un panel que muestra la salud de los proveedores
+y conserva la información disponible cuando alguno falla.
 
 ## Tecnologías
 
-Node.js y Express para el backend.
-HTML, CSS y JavaScript para el panel.
+Backend con Node.js y Express.
+Panel con HTML, CSS y JavaScript.
 
 Elegí estas tecnologías por mi experiencia previa y porque permiten
 ejecutar el proyecto con pocos pasos, sin base de datos.
@@ -21,7 +21,7 @@ ejecutar el proyecto con pocos pasos, sin base de datos.
 
 No se necesitan credenciales ni claves de API.
 
-## Instalación
+## Instalación y ejecución
 
 ```bash
 git clone https://github.com/nazarethfrias/paylinkhub-nazareth-frias.git
@@ -29,63 +29,68 @@ cd paylinkhub-nazareth-frias
 npm ci
 ```
 
-Crear el archivo de configuración.
+Crear la configuración local.
 
-En Windows CMD:
+Windows CMD:
 
 ```bat
 copy .env.example .env
 ```
 
-En Linux o macOS:
+Linux o macOS:
 
 ```bash
 cp .env.example .env
 ```
 
-Iniciar el servidor:
+Iniciar:
 
 ```bash
 npm start
 ```
 
-Abrir el panel en http://localhost:3001
+Abrir el panel en:
 
-La terminal debe permanecer abierta mientras se utiliza la aplicación.
-Para detener el servidor, presionar Ctrl + C.
+http://localhost:3001
+
+Mantener la terminal abierta mientras se utiliza la aplicación.
+Para detenerla, presionar Ctrl + C.
 
 El puerto se configura mediante PORT. Si está ocupado, detener
-la instancia anterior o configurar otro puerto y abrir esa dirección.
+la instancia anterior o configurar otro puerto en .env.
 
-## Cómo utilizarlo
+## Uso del panel
 
-Ingresar un ID de cliente entero positivo y pulsar Consultar cliente.
+Ingresar un identificador entero positivo y pulsar Consultar cliente.
 
 El panel muestra:
 
 - Nombre, correo, teléfono y dirección.
 - Resumen y tabla de consumos.
 - Filtro por ID o descripción.
-- Estado, latencia e intentos por proveedor.
+- Estado, latencia e intentos de cada proveedor.
 - Advertencias cuando la información es parcial.
 
 Los datos de DummyJSON son ficticios. Los carritos representan
-consumos simulados; esta aplicación no procesa pagos reales.
+consumos simulados; la aplicación no procesa pagos reales.
+
+El proveedor no entrega fechas de transacción. Se mantiene el orden
+recibido sin inventar fechas ni estados de pago.
 
 ## Proveedores
 
 | Proveedor | Función |
 |---|---|
-| CORE | Datos del cliente |
+| CORE | Información del cliente |
 | PAGOS | Carritos utilizados como consumos simulados |
 | INESTABLE_500 | Demostrar manejo de HTTP 500 |
 | INESTABLE_LENTO | Demostrar timeout |
 
-Las URLs se configuran en .env y se incluyen como ejemplos
-en .env.example. No están incrustadas en el código de integración.
+Las URLs se configuran en .env y están documentadas en .env.example.
+El archivo .env no se incluye en Git.
 
-Los simuladores fallan deliberadamente. Por eso es normal recibir
-partial: true aunque CORE y PAGOS funcionen.
+Los proveedores INESTABLE fallan deliberadamente. Por eso es normal
+recibir partial: true aunque CORE y PAGOS estén disponibles.
 
 ## Endpoint
 
@@ -93,10 +98,15 @@ partial: true aunque CORE y PAGOS funcionen.
 curl -i http://localhost:3001/api/v1/dashboard/1
 ```
 
-Se espera HTTP 200 con información disponible, salud de proveedores
-y advertencias. Los resultados externos y las latencias pueden variar.
+Resultado esperado: HTTP 200 con los datos disponibles, estado
+de proveedores y advertencias.
+
+Los datos, latencias y resultados externos pueden variar.
 
 ## Contrato canónico
+
+La respuesta utiliza un modelo propio, separado de los formatos
+de los proveedores.
 
 Ejemplo ilustrativo:
 
@@ -171,13 +181,14 @@ Ejemplo ilustrativo:
 }
 ```
 
-### Interpretación
+### Interpretación de la respuesta
 
-- customer es null si CORE falla o no puede mapearse.
-- transactions es una lista vacía si no hay consumos o PAGOS falla.
-- El resumen devuelve null si PAGOS falla y cero si responde sin consumos.
-- partial indica que al menos un proveedor falló.
-- warnings identifica el proveedor y el tipo de fallo.
+- customer es null cuando CORE falla o su respuesta no puede mapearse.
+- transactions es una lista vacía cuando no hay consumos o PAGOS falla.
+- El conteo y el total del resumen son null si PAGOS falla.
+  Son cero cuando responde correctamente sin consumos.
+- partial es true si al menos un proveedor falla.
+- warnings identifica el proveedor y su código de fallo.
 - latencyMs incluye intentos y esperas del cliente HTTP, sin el mapeo.
 - La salud representa esta consulta, no un historial de disponibilidad.
 
@@ -187,36 +198,53 @@ Los errores internos inesperados devuelven HTTP 500.
 
 ## Decisiones técnicas
 
-- Consultas en paralelo con manejo individual de fallas esperadas.
+- Consultas concurrentes con manejo individual de fallas esperadas.
 - Mapeo explícito de campos permitidos, sin devolver el payload de CORE.
-- Timeout de 2500 ms por intento y un reintento máximo ante 5xx
+- Timeout de 2500 ms por intento y un reintento máximo ante HTTP 5xx
   o timeout. Nunca se reintentan errores 4xx.
 - Backoff de 300 * 2^n ms. Con un reintento configurado,
-  se realiza una espera de 300 ms.
+  la espera antes del segundo intento es de 300 ms.
 
 Cada carrito representa un consumo. Los importes se recalculan
-desde precio, cantidad y descuento por producto, redondeando
-cada línea a centavos. El resumen suma los netos calculados.
+desde precio, cantidad y descuento por producto, redondeando cada
+línea a centavos. El resumen suma los importes netos calculados.
 
-No se inventan fechas ni estados de pago que el proveedor no entrega.
-El panel mantiene el orden recibido.
+El panel utiliza textContent para representar los datos externos
+como texto.
 
-## Verificaciones realizadas
+## Tests automatizados
 
-- Endpoint del cliente 1: HTTP 200.
+Ejecutar:
+
+```bash
+npm test
+```
+
+Se incluyen cuatro pruebas en test/mappers.test.js:
+
+1. El cliente solo incluye los campos permitidos.
+2. Los importes se recalculan sin confiar en los totales del proveedor.
+3. Una lista vacía se distingue de una estructura inválida.
+4. Se rechazan descuentos fuera del rango permitido.
+
+Resultado observado: cuatro pruebas aprobadas y cero fallidas.
+Estas pruebas cubren los mapeadores, no toda la aplicación.
+
+## Verificaciones manuales
+
+- Dashboard del cliente 1: HTTP 200.
 - Identificador abc: HTTP 400.
 - Cliente inexistente: CORE HTTP_404 con un solo intento.
 - Proveedor con HTTP 500: dos intentos.
-- Proveedor lento: timeout con dos intentos.
-- Panel conserva cliente y consumos ante fallas simuladas.
+- Proveedor lento: TIMEOUT con dos intentos.
+- El panel conserva cliente y consumos ante las fallas simuladas.
 - Filtro con coincidencias y sin coincidencias.
-- Aserciones locales sobre campos permitidos y cálculo de importes.
-- .env y node_modules no están registrados en Git.
-- Instalación con npm ci y ejecución verificadas desde un clon local limpio en el puerto 3002.
+- .env y node_modules ignorados y sin seguimiento en Git.
+- Instalación con npm ci y ejecución desde un clon local limpio
+  en el puerto 3002.
 
-Las verificaciones se ejecutaron manualmente y mediante una
-instrucción de Node con aserciones. No hay una suite automatizada
-versionada en el repositorio.
+El puerto 3002 se utilizó únicamente para verificar la copia limpia.
+El puerto configurado para la ejecución habitual es 3001.
 
 ## Propuesta de innovación
 
@@ -225,18 +253,19 @@ o aumente su latencia, para ayudar a los operadores a detectar incidentes.
 En un próximo sprint almacenaría métricas, definiría umbrales por ventana
 de tiempo y mostraría alertas deduplicadas.
 Mediría tiempo de detección y falsos positivos, ajustando los umbrales
-con tráfico real. La propuesta no incluye desviar pagos automáticamente.
+con tráfico real. No incluye desviar pagos automáticamente.
 
-## Limitaciones
+## Limitaciones conocidas
 
-- FX y caché TTL pendientes.
-- Sin circuit breaker, auto-refresh ni suite automatizada.
+- FX y su caché TTL están pendientes.
+- Sin circuit breaker ni auto-refresh.
 - Sin autenticación ni persistencia.
 - Sin paginación adicional de consumos.
+- Las políticas HTTP se verificaron manualmente, sin tests automatizados.
 - Dependencia de disponibilidad y contratos de APIs públicas.
 - Los cálculos usan números de JavaScript y redondeo a centavos;
   una solución financiera productiva requiere revisar precisión y límites.
 - Falta validación exhaustiva de las variables de timeout y reintentos.
 
-El alcance y las pendientes se detallan en STATUS.md.
+El alcance se detalla en STATUS.md.
 El uso de IA se describe en AI-LOG.md.

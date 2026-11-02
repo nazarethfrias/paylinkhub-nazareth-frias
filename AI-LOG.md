@@ -3,110 +3,132 @@
 Inicio: 2 de noviembre de 2026, 9:57 a. m., Panamá.
 Herramienta utilizada: ChatGPT.
 
-## Elección de tecnologías
+## Por qué elegí estas tecnologías
 
-Elegí Node.js con Express y un panel en HTML, CSS y JavaScript
-porque ya he trabajado con estas tecnologías.
-Quería concentrarme en la integración, el manejo de fallas
-y una ejecución local sencilla.
+Elegí Node.js con Express para el backend y HTML, CSS y JavaScript
+para el panel porque ya he trabajado con estas tecnologías.
 
-## Forma de trabajo
+Quería concentrarme en la integración y el manejo de fallas,
+manteniendo sencilla la instalación y ejecución local.
 
-Trabajé por etapas: endpoint con datos de ejemplo, integración real,
-manejo de errores y panel.
+## Cómo trabajé
 
-ChatGPT generó gran parte del código inicial. Yo lo incorporé,
-lo ejecuté en mi equipo, comprobé las respuestas y reporté los problemas.
-También personalicé el diseño y gestioné los commits en GitHub.
+Avancé por etapas: primero un endpoint con datos de ejemplo,
+después la integración real, el manejo de errores y el panel.
+
+ChatGPT generó gran parte del código inicial. Yo lo incorporé al
+proyecto, lo ejecuté en mi equipo, comprobé las respuestas y compartí
+los problemas que encontraba para pedir correcciones.
+
+También personalicé los colores del panel y gestioné los commits
+en GitHub.
 
 ## Prompts representativos
 
-### Inicio
+### Para comenzar
 
-Prompt exacto: "Empecemos"
+Prompt exacto:
+"Empecemos"
 
-La IA propuso configurar el proyecto y después generó
-el esqueleto del endpoint y una pantalla con datos de ejemplo.
-Lo incorporé y comprobé su ejecución antes de guardar el avance.
+La IA propuso configurar el proyecto y después generó un endpoint
+y una pantalla inicial con datos de ejemplo.
+Los incorporé y comprobé su ejecución antes de guardar el avance.
 
-### Panel y requisitos
+### Para continuar con los requisitos
 
 Prompt exacto:
 "okey,entiendo. continuemos, recuerda seguir las indicaciones del pdf"
 
-La respuesta incluyó un panel con cliente, resumen, tabla,
-filtro y salud de proveedores. Lo incorporé y revisé visualmente.
+La respuesta incluyó el panel con información del cliente,
+resumen, tabla, filtro y salud de proveedores.
+Lo incorporé y revisé los datos mostrados.
 
-### Personalización
+### Para personalizar el diseño
 
 Prompt exacto:
 "damelo con las letras en verde plis, para ponerle mi toque"
 
-Apliqué los cambios de CSS propuestos y mantuve los errores en rojo.
+Apliqué los cambios de CSS y mantuve los estados de falla en rojo.
 
-### Revisión de la integración
+### Para revisar un problema de ejecución
 
 Prompt exacto:
 "sigue igual dame los codigos ocmpleto corregido en los que debo realizar los cambios"
 
-La IA entregó una versión completa del servidor con identificación
-de versión y configuración en puerto 3001.
-Comprobé que la nueva respuesta incluyera los cuatro proveedores.
+Aunque había actualizado el código, seguía viendo una respuesta anterior.
+La IA entregó el servidor completo con identificación de versión
+y configuración en el puerto 3001.
+Comprobé la corrección consultando el endpoint y viendo cuatro proveedores.
 
-## Código que pedí corregir
+## Una propuesta que pedí corregir
 
-La primera versión de arranque no manejaba explícitamente
-el error de puerto ocupado. Durante las pruebas seguía viendo
-una respuesta anterior, así que cuestioné el resultado.
+La primera versión de arranque no manejaba explícitamente el error
+de puerto ocupado. Durante las verificaciones seguía recibiendo
+una respuesta anterior, así que no di el resultado por válido.
 
-Revisamos los procesos, detuvimos la instancia anterior e incorporamos
-manejo de EADDRINUSE y una etiqueta de versión.
-También cambiamos el puerto a 3001.
+Revisamos los procesos y detuvimos la instancia anterior.
+Se incorporó manejo de EADDRINUSE y una etiqueta de versión.
+También cambiamos la configuración al puerto 3001.
 
-Validé el resultado consultando el endpoint y viendo los cuatro
-proveedores en el panel. La confusión entre terminales e instancias
-también contribuyó al problema.
+La confusión entre terminales e instancias contribuyó al problema.
+Pedir el archivo completo y comprobar la versión ejecutada ayudó
+a resolverlo.
 
-## Contrato y mapeo
+## Contrato y decisiones de mapeo
 
-Se conservan de CORE únicamente ID, nombre, correo, teléfono y dirección.
-El mapeador construye una lista explícita de campos permitidos.
-Se descartan contraseñas, identificadores sensibles, información bancaria,
-billeteras y otros campos que el panel no necesita.
+De CORE se conservan únicamente ID, nombre, correo, teléfono
+y dirección. El objeto se construye con campos permitidos explícitos.
 
-Cada carrito se representa como un consumo simulado.
-Se recalculan bruto, descuento y neto desde los productos.
+Se descartan contraseñas, identificadores sensibles, información
+bancaria, billeteras y campos que el panel no necesita.
+
+Cada carrito representa un consumo simulado.
+Los importes se recalculan desde productos, cantidades y descuentos,
+redondeando cada línea a centavos.
+
 No se inventan fechas ni estados de pago.
+Cuando PAGOS falla, los agregados son null para distinguir
+indisponibilidad de una respuesta válida sin consumos.
 
-Si PAGOS falla, los agregados son null para distinguir indisponibilidad
-de una respuesta válida sin consumos.
-
-## Verificaciones
+## Verificaciones realizadas
 
 - HTTP 200 para el dashboard.
 - HTTP 400 para un identificador inválido.
-- HTTP 404 de CORE con un solo intento.
+- CORE HTTP_404 con un solo intento.
 - HTTP 500 con dos intentos.
 - Timeout con dos intentos.
-- Conservación de datos disponibles ante fallas.
+- Conservación de los datos disponibles ante fallas.
 - Filtro con coincidencias y sin resultados.
-- Aserciones locales de campos permitidos y cálculos.
 - Exclusión de .env y node_modules del seguimiento de Git.
-- Instalación con npm ci y ejecución verificadas desde un clon local limpio en el puerto 3002.
+- Instalación con npm ci y ejecución desde un clon local limpio
+  en el puerto 3002.
 
-Las aserciones se ejecutaron con node -e.
-No quedaron incorporadas como suite automatizada en el repositorio.
+## Tests automatizados
+
+ChatGPT generó cuatro tests del mapeador.
+Los incorporé en test/mappers.test.js y los ejecuté con npm test.
+
+Las cuatro pruebas pasaron:
+
+- Campos permitidos del cliente.
+- Recálculo de importes sin confiar en totales externos.
+- Diferencia entre lista vacía y estructura inválida.
+- Rechazo de descuentos fuera de rango.
+
+Esta cobertura es limitada al mapeo.
+Las políticas de integración HTTP se comprobaron manualmente.
 
 ## Propuesta de innovación
 
-Alertas ante degradación de proveedores para que los operadores
-detecten incidentes más rápido.
-El primer alcance sería almacenar métricas, evaluar umbrales
-y mostrar alertas deduplicadas.
+Propondría alertas ante degradación de proveedores para ayudar
+a los operadores a detectar incidentes más rápido.
 
+El primer alcance sería almacenar métricas, evaluar umbrales
+por ventana de tiempo y mostrar alertas deduplicadas.
 Mediría tiempo de detección y falsas alertas.
+
 Los umbrales deben calibrarse con datos operativos reales.
-La propuesta está documentada y no implementada.
+La propuesta está documentada, pero no implementada.
 
 ## Balance del uso de IA
 
@@ -114,13 +136,20 @@ Estimo que el 75 % del código fue generado por IA y el 25 %
 fue escrito o modificado por mí.
 Es una estimación aproximada, no una medición automática.
 
-Mi trabajo también incluyó configuración, incorporación del código,
+Mi participación también incluyó configuración, incorporación del código,
 ejecución local, comprobaciones, solicitud de correcciones,
 personalización visual y gestión de commits.
 
-Lo que hizo bien la IA: acelerar la estructura de integración
-y la construcción del panel.
+Lo que hizo bien la IA: acelerar la integración, el panel
+y la preparación de pruebas del mapeador.
 
 Lo que hizo mal: la primera versión no diagnosticaba explícitamente
 el puerto ocupado y las instrucciones por fragmentos generaron
 confusión durante los cambios.
+
+## Manejo del tiempo
+
+El primer commit funcional se registró a las 10:27:49 a. m.,
+30 minutos y 49 segundos después del inicio declarado.
+El esqueleto se entregó, pero el commit excedió por 49 segundos
+el límite de los primeros 30 minutos.

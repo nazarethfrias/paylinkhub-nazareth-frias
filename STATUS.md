@@ -3,56 +3,67 @@
 Inicio declarado: 2 de noviembre de 2026, 9:57 a. m., Panamá.
 Límite previsto: 11:57 a. m.
 
-Prioricé la integración funcional, la tolerancia a fallas
-y un panel conectado al backend.
+Prioricé una aplicación funcional, la integración con proveedores,
+el manejo de sus fallas y un panel conectado al backend.
 
 ## Requisitos principales
 
-| Requisito | Estado | Observación |
+| Requisito | Estado | Resultado y observaciones |
 |---|---|---|
-| Esqueleto funcional | Hecho | Commit ed6dd1e con endpoint y pantalla inicial |
-| Commit antes del minuto 30 | No hecho | Registrado a las 10:27:49; 30 minutos y 49 segundos desde el inicio declarado |
-| Contrato canónico | Hecho | Modelo propio documentado en README |
-| Filtrado de campos sensibles | Hecho | Lista explícita y aserción local satisfactoria |
-| CORE y PAGOS reales | Hecho | Consultas concurrentes con datos visibles en el panel |
-| Timeout y reintentos | Hecho | 2500 ms por intento, un reintento ante 5xx o timeout |
-| No reintentar 4xx | Hecho | CORE HTTP_404 con attempts: 1 |
-| Degradación elegante | Hecho | HTTP 200, partial y warnings conservando información disponible |
-| Mini panel | Hecho | Cliente, consumos, resumen y salud de proveedores |
+| Esqueleto funcional | Hecho | Endpoint y pantalla inicial en el commit ed6dd1e |
+| Commit antes del minuto 30 | No hecho | Registrado a las 10:27:49 a. m., 30 minutos y 49 segundos desde el inicio declarado |
+| Contrato canónico propio | Hecho | Modelo independiente de proveedores, documentado en README |
+| Filtrado de datos sensibles | Hecho | Campos permitidos explícitos y test automatizado aprobado |
+| Integración real con CORE y PAGOS | Hecho | Consultas concurrentes y datos visibles en el panel |
+| Timeout por proveedor | Hecho | 2500 ms por intento; TIMEOUT comprobado |
+| Reintentos con backoff | Hecho | Un reintento ante 5xx o timeout y espera de 300 ms |
+| No reintentar errores 4xx | Hecho | CORE HTTP_404 con attempts: 1 |
+| Degradación elegante | Hecho | HTTP 200 con partial y warnings conservando datos disponibles |
+| Panel conectado al backend | Hecho | Cliente, resumen, tabla, advertencias y badges de salud |
 | Configuración externa | Hecho | Variables de entorno y .env.example |
 | Exclusiones de Git | Hecho | .env y node_modules ignorados y sin seguimiento |
 
 ## Mejoras y verificaciones
 
-| Requisito | Estado | Observación |
+| Requisito | Estado | Resultado y observaciones |
 |---|---|---|
-| Filtro | Hecho | Verificado con “carrito” y “zzzz” |
-| Validación de ID | Hecho | Identificador abc devuelve HTTP 400 |
+| Filtro de consumos | Hecho | Búsqueda con coincidencias y sin resultados comprobada |
+| Validación de identificadores | Hecho | Identificador abc devuelve HTTP 400 |
 | Logs estructurados | Hecho | Resultado, intentos, latencia y errores de mapeo |
-| Cálculos del mapeador | Hecho | Aserción local: bruto 20, descuento 2 y neto 18 |
-| Propuesta de innovación | Hecho | Alertas de degradación documentadas |
-| Documentación | Hecho | README, AI-LOG y STATUS preparados; Documentación publicada y verificaciones registradas |
-| Instalación desde clon local limpio | Hecho | npm ci y ejecución del panel con los cuatro proveedores en el puerto 3002 |
+| Test del contrato canónico | Hecho | Cuatro tests del mapeador aprobados con npm test |
+| Instalación desde clon local limpio | Hecho | npm ci y ejecución del panel con cuatro proveedores en puerto 3002 |
+| Propuesta de innovación | Hecho | Alertas de degradación documentadas, sin implementar |
+| Documentación | Hecho | README, AI-LOG y STATUS incluyen ejecución, decisiones, verificaciones y pendientes |
 
-## Pendientes
+## Funcionalidades pendientes
 
-| Requisito | Estado | Siguiente paso |
+| Requisito | Estado | Cómo lo abordaría |
 |---|---|---|
-| FX y caché TTL | No hecho | Cliente FX con validación y caché en memoria con vencimiento |
-| Circuit breaker | No hecho | Estados cerrado, abierto y semiabierto por proveedor |
-| Boceto de innovación | No hecho | Diagrama de métricas, evaluación y alertas |
-| Auto-refresh | No hecho | Polling sin consultas superpuestas |
-| Test automatizado versionado | No hecho | Convertir las aserciones ejecutadas en tests del repositorio |
+| Integración FX y caché TTL | No hecho | Agregaría un cliente FX con validación de tasas y caché en memoria con vencimiento |
+| Circuit breaker | No hecho | Incorporaría estados cerrado, abierto y semiabierto por proveedor |
+| Boceto de innovación | No hecho | Prepararía un diagrama de captura de métricas, evaluación y alertas |
+| Auto-refresh | No hecho | Agregaría polling evitando solicitudes superpuestas |
 
-## Alcance
+## Límites de las verificaciones
 
-Las verificaciones se realizaron manualmente y con aserciones puntuales.
-No existe una suite automatizada versionada.
+Los cuatro tests automatizados cubren el mapeador.
+Las políticas HTTP, los estados del panel y la degradación
+se comprobaron manualmente.
+
+La prueba de instalación se hizo mediante un clon del repositorio local.
+No se afirma haber repetido la instalación mediante un clon desde GitHub.
 
 Los proveedores INESTABLE fallan deliberadamente.
-Una respuesta parcial es esperada aunque CORE y PAGOS estén disponibles.
+Por eso una respuesta parcial es esperada aunque CORE y PAGOS funcionen.
 
-Los carritos son consumos simulados y no representan pagos procesados.
-No se inventaron fechas ni estados ausentes en el proveedor.
+Los carritos representan consumos simulados.
+No se procesan pagos ni se inventan fechas o estados ausentes.
+
+## Manejo del tiempo
+
+El primer commit funcional excedió por 49 segundos el plazo
+de los primeros 30 minutos.
 
 La hora real de cierre se registrará al finalizar.
+Cualquier cambio posterior a las 11:57 a. m. deberá identificarse
+como posterior al tiempo previsto.
