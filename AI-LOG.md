@@ -92,6 +92,7 @@ de una respuesta válida sin consumos.
 - Filtro con coincidencias y sin resultados.
 - Aserciones locales de campos permitidos y cálculos.
 - Exclusión de .env y node_modules del seguimiento de Git.
+- Instalación con npm ci y ejecución verificadas desde un clon local limpio en el puerto 3002.
 
 Las aserciones se ejecutaron con node -e.
 No quedaron incorporadas como suite automatizada en el repositorio.

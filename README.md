@@ -212,6 +212,7 @@ El panel mantiene el orden recibido.
 - Filtro con coincidencias y sin coincidencias.
 - Aserciones locales sobre campos permitidos y cálculo de importes.
 - .env y node_modules no están registrados en Git.
+- Instalación con npm ci y ejecución verificadas desde un clon local limpio en el puerto 3002.
 
 Las verificaciones se ejecutaron manualmente y mediante una
 instrucción de Node con aserciones. No hay una suite automatizada
