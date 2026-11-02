@@ -64,6 +64,6 @@ No se procesan pagos ni se inventan fechas o estados ausentes.
 El primer commit funcional excedió por 49 segundos el plazo
 de los primeros 30 minutos.
 
-La hora real de cierre se registrará al finalizar.
+Cierre del trabajo: 2 de noviembre de 2026, 11:55 a. m..
 Cualquier cambio posterior a las 11:57 a. m. deberá identificarse
 como posterior al tiempo previsto.
