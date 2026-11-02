@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PayLinkHub</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 1000px;
+      margin: 40px auto;
+      padding: 0 20px;
+      background: #f4f6fa;
+      color: #172338;
+    }
+
+    section {
+      background: white;
+      padding: 24px;
+      margin-top: 20px;
+      border-radius: 12px;
+    }
+
+    input, button {
+      padding: 10px;
+    }
+
+    button {
+      background: #164bc5;
+      color: white;
+      border: 0;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    pre {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+  </style>
+</head>
+<body>
+  <h1>PayLinkHub</h1>
+  <p>Panel de monitoreo de clientes y consumos</p>
+
+  <form id="search">
+    <label for="customerId">ID del cliente:</label>
+    <input
+      id="customerId"
+      type="number"
+      min="1"
+      step="1"
+      value="1"
+      required
+    >
+    <button type="submit">Consultar</button>
+  </form>
+
+  <section>
+    <p id="message" role="status"></p>
+    <pre id="result"></pre>
+  </section>
+
+  <script>
+    const form = document.getElementById("search");
+    const message = document.getElementById("message");
+    const result = document.getElementById("result");
+
+    async function loadDashboard() {
+      message.textContent = "Consultando...";
+      result.textContent = "";
+
+      try {
+        const id = document.getElementById("customerId").value;
+
+        const response = await fetch(
+          `/api/v1/dashboard/${encodeURIComponent(id)}`
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || "No fue posible consultar");
+        }
+
+        message.textContent = "Respuesta recibida del backend";
+        result.textContent = JSON.stringify(data, null, 2);
+      } catch (error) {
+        message.textContent = error.message;
+      }
+    }
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      loadDashboard();
+    });
+
+    loadDashboard();
+  </script>
+</body>
+</html>
