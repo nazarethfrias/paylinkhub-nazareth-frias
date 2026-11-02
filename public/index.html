@@ -3,99 +3,314 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>PayLinkHub</title>
+  <title>PayLinkHub | Monitoreo</title>
   <style>
+    * { box-sizing: border-box; }
     body {
+      margin: 0;
+      background: #f3f6fb;
+     color: #166534;;
       font-family: Arial, sans-serif;
-      max-width: 1000px;
-      margin: 40px auto;
-      padding: 0 20px;
-      background: #f4f6fa;
-      color: #172338;
     }
-
-    section {
+    main { max-width: 1100px; margin: auto; padding: 32px 20px; }
+    header { margin-bottom: 24px; }
+    h1 { margin: 0 0 8px; color: #15803d; }
+    h2 { font-size: 18px; margin-top: 0; }
+    p { line-height: 1.5; }
+    .muted { color: #427453; }
+    .card {
       background: white;
-      padding: 24px;
-      margin-top: 20px;
-      border-radius: 12px;
+      border: 1px solid #e0e7f0;
+      border-radius: 14px;
+      padding: 22px;
+      margin-bottom: 20px;
     }
-
+    form, .providers {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
     input, button {
-      padding: 10px;
+      font: inherit;
+      padding: 11px 14px;
+      border-radius: 8px;
+      border: 1px solid #bcc9dc;
     }
-
     button {
-      background: #164bc5;
+      background: #15803d;
+      border-color: #15803d;
       color: white;
-      border: 0;
-      border-radius: 6px;
       cursor: pointer;
     }
-
-    pre {
-      white-space: pre-wrap;
-      overflow-wrap: anywhere;
+    button:disabled { opacity: .6; cursor: wait; }
+    .grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+    .badge {
+      display: inline-block;
+      padding: 8px 12px;
+      border-radius: 8px;
+      background: #edf1f6;
+    }
+    .up { background: #e0f5e8; color: #145c33; }
+    .down { background: #fde5e5; color: #972626; }
+    .warning {
+      background: #fff4d7;
+      color: #735014;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+    }
+    .amount { font-size: 30px; font-weight: bold; margin: 12px 0; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 14px 10px; border-bottom: 1px solid #e6ebf2; text-align: left; }
+    th { color: #596a80; font-size: 13px; }
+    .number { text-align: right; }
+    #filter { width: 100%; margin: 8px 0 16px; }
+    #message { min-height: 24px; }
+    @media (max-width: 650px) {
+      .grid { grid-template-columns: 1fr; gap: 0; }
+      form input { width: 100%; }
     }
   </style>
 </head>
 <body>
-  <h1>PayLinkHub</h1>
-  <p>Panel de monitoreo de clientes y consumos</p>
+<main>
+  <header>
+    <h1>PayLinkHub</h1>
+    <p class="muted">Monitoreo de clientes, consumos y proveedores</p>
+  </header>
 
-  <form id="search">
-    <label for="customerId">ID del cliente:</label>
-    <input
-      id="customerId"
-      type="number"
-      min="1"
-      step="1"
-      value="1"
-      required
-    >
-    <button type="submit">Consultar</button>
-  </form>
-
-  <section>
-    <p id="message" role="status"></p>
-    <pre id="result"></pre>
+  <section class="card">
+    <form id="search">
+      <label for="customerId">ID del cliente</label>
+      <input id="customerId" type="number" min="1" step="1" value="1" required>
+      <button id="submit" type="submit">Consultar cliente</button>
+    </form>
+    <p id="message" role="status" aria-live="polite"></p>
+    <div id="warnings"></div>
   </section>
 
-  <script>
-    const form = document.getElementById("search");
-    const message = document.getElementById("message");
-    const result = document.getElementById("result");
+  <section class="card">
+    <h2>Estado de proveedores</h2>
+    <div id="providers" class="providers"></div>
+    <p id="updated" class="muted"></p>
+  </section>
 
-    async function loadDashboard() {
-      message.textContent = "Consultando...";
-      result.textContent = "";
+  <div class="grid">
+    <section class="card">
+      <h2>Información del cliente</h2>
+      <h3 id="name">Pendiente de consulta</h3>
+      <p id="email"></p>
+      <p id="phone"></p>
+      <p id="address"></p>
+    </section>
 
-      try {
-        const id = document.getElementById("customerId").value;
+    <section class="card">
+      <h2>Resumen de consumos</h2>
+      <p id="total" class="amount">—</p>
+      <p id="count" class="muted"></p>
+      <p class="muted">USD · Consumos simulados a partir de carritos.</p>
+    </section>
+  </div>
 
-        const response = await fetch(
-          `/api/v1/dashboard/${encodeURIComponent(id)}`
-        );
+  <section class="card">
+    <h2>Consumos del cliente</h2>
+    <p class="muted">
+      El proveedor no proporciona fechas de transacción.
+      Los registros se muestran en el orden recibido.
+    </p>
+    <label for="filter">Filtrar por ID o descripción</label>
+    <input id="filter" type="search" placeholder="Buscar consumo...">
 
-        const data = await response.json();
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Descripción</th>
+            <th class="number">Unidades</th>
+            <th class="number">Bruto</th>
+            <th class="number">Descuento</th>
+            <th class="number">Neto</th>
+          </tr>
+        </thead>
+        <tbody id="transactions"></tbody>
+      </table>
+    </div>
+    <p id="empty" class="muted"></p>
+  </section>
+</main>
 
-        if (!response.ok) {
-          throw new Error(data.error || "No fue posible consultar");
-        }
+<script>
+  const $ = (id) => document.getElementById(id);
+  const money = (value) => new Intl.NumberFormat("es-PA", {
+    style: "currency",
+    currency: "USD",
+  }).format(value);
 
-        message.textContent = "Respuesta recibida del backend";
-        result.textContent = JSON.stringify(data, null, 2);
-      } catch (error) {
-        message.textContent = error.message;
-      }
+  let dashboard = null;
+
+  function renderTransactions() {
+    const tbody = $("transactions");
+    tbody.replaceChildren();
+
+    if (!dashboard) {
+      $("empty").textContent = "Realiza una consulta para ver los consumos.";
+      return;
     }
 
-    form.addEventListener("submit", (event) => {
-      event.preventDefault();
-      loadDashboard();
-    });
+    const payments = dashboard.providers.find((p) => p.name === "PAGOS");
 
+    if (!payments || payments.status !== "up") {
+      $("empty").textContent =
+        "Consumos no disponibles: falló la consulta al proveedor PAGOS.";
+      return;
+    }
+
+    const query = $("filter").value.trim().toLowerCase();
+    const rows = dashboard.transactions.filter((transaction) =>
+      `${transaction.id} ${transaction.description}`
+        .toLowerCase()
+        .includes(query)
+    );
+
+    for (const transaction of rows) {
+      const row = document.createElement("tr");
+
+      const values = [
+        transaction.id,
+        transaction.description,
+        transaction.itemCount,
+        money(transaction.grossAmount),
+        money(transaction.discountAmount),
+        money(transaction.amount),
+      ];
+
+      values.forEach((value, index) => {
+        const cell = document.createElement("td");
+        cell.textContent = String(value);
+        if (index >= 2) cell.className = "number";
+        row.appendChild(cell);
+      });
+
+      tbody.appendChild(row);
+    }
+
+    $("empty").textContent = rows.length
+      ? ""
+      : dashboard.transactions.length
+        ? "No hay coincidencias con el filtro."
+        : "El cliente no tiene consumos registrados.";
+  }
+
+  function clearDashboard() {
+    dashboard = null;
+    $("name").textContent = "Pendiente de consulta";
+    ["email", "phone", "address", "count", "updated"].forEach((id) => {
+      $(id).textContent = "";
+    });
+    $("total").textContent = "—";
+    $("providers").replaceChildren();
+    $("warnings").replaceChildren();
+    renderTransactions();
+  }
+
+  function renderDashboard(data) {
+    dashboard = data;
+    const customer = data.customer;
+
+    $("name").textContent = customer?.name || "Cliente no disponible";
+    $("email").textContent = customer
+      ? `Correo: ${customer.email ?? "No disponible"}`
+      : "";
+    $("phone").textContent = customer
+      ? `Teléfono: ${customer.phone ?? "No disponible"}`
+      : "";
+
+    $("address").textContent = customer?.address
+      ? [
+          customer.address.street,
+          customer.address.city,
+          customer.address.country,
+        ].filter(Boolean).join(", ")
+      : "Dirección no disponible";
+
+    $("total").textContent = data.summary.totalAmount === null
+      ? "No disponible"
+      : money(data.summary.totalAmount);
+
+    $("count").textContent = data.summary.transactionCount === null
+      ? "No fue posible consultar el total de consumos."
+      : `${data.summary.transactionCount} consumo(s)`;
+
+    $("providers").replaceChildren();
+
+    for (const provider of data.providers) {
+      const badge = document.createElement("span");
+      const available = provider.status === "up";
+      badge.className = `badge ${available ? "up" : "down"}`;
+      badge.textContent =
+        `${provider.name}: ${available ? "Disponible" : "No disponible"}` +
+        ` · ${provider.latencyMs} ms · ${provider.attempts} intento(s)`;
+      $("providers").appendChild(badge);
+    }
+
+    $("warnings").replaceChildren();
+
+    for (const warning of data.warnings) {
+      const item = document.createElement("div");
+      item.className = "warning";
+      item.textContent = warning;
+      $("warnings").appendChild(item);
+    }
+
+    $("updated").textContent = "Última consulta: " +
+      new Date(data.meta.generatedAt).toLocaleString("es-PA", {
+        timeZone: "America/Panama",
+      });
+
+    $("message").textContent = data.partial
+      ? "Consulta completada con información parcial."
+      : "Consulta completada.";
+
+    renderTransactions();
+  }
+
+  async function loadDashboard() {
+    clearDashboard();
+    $("message").textContent = "Consultando proveedores...";
+    $("submit").disabled = true;
+
+    try {
+      const id = $("customerId").value;
+      const response = await fetch(
+        `/api/v1/dashboard/${encodeURIComponent(id)}`,
+        { signal: AbortSignal.timeout(15000), cache: "no-store" }
+      );
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "No fue posible consultar.");
+      }
+
+      renderDashboard(data);
+    } catch (error) {
+      $("message").textContent = error.name === "TimeoutError"
+        ? "La consulta excedió el tiempo de espera. Intenta nuevamente."
+        : `Error de consulta: ${error.message}`;
+    } finally {
+      $("submit").disabled = false;
+    }
+  }
+
+  $("search").addEventListener("submit", (event) => {
+    event.preventDefault();
     loadDashboard();
-  </script>
+  });
+
+  $("filter").addEventListener("input", renderTransactions);
+  loadDashboard();
+</script>
 </body>
 </html>
